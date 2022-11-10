@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 0e2c0328faca4c608a76c81ba3a86bd8
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - ballSpawnPosition: {instanceID: 0}
+  - _countdown: {instanceID: 0}
+  - _playerA: {instanceID: 0}
+  - _playerB: {instanceID: 0}
+  - ballPrefab: {instanceID: 0}
+  - _powerupManager: {fileID: 11400000, guid: 9adcbf36c6fb3094aac46a950b09f104, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
