@@ -1,4 +1,5 @@
-﻿using Pong.Powerups;
+﻿using System;
+using Pong.Powerups;
 using UnityEngine;
 
 namespace Pong
@@ -33,13 +34,30 @@ namespace Pong
 			_spriteRenderer = GetComponentInChildren<SpriteRenderer>();
 			_rigidbody2D = GetComponent<Rigidbody2D>();
 			_paddleMovement = GetComponent<PaddleMovement>();
-			
 			_playerData.RegisterPaddle(this);
 		}
 
 		private void Start()
 		{
 			_spriteRenderer.color = _playerData.Color;
+		}
+
+		private void OnEnable()
+		{
+			PongGameManager.OnGameStateChange += OnGameStateChange;
+		}
+
+		private void OnDisable()
+		{
+			PongGameManager.OnGameStateChange -= OnGameStateChange;
+		}
+
+		private void OnGameStateChange(GameState state)
+		{
+			if (state == GameState.Countdown)
+			{
+				ResetPosition();
+			}
 		}
 
 		public void ResetPosition()

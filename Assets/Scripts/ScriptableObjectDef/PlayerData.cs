@@ -8,6 +8,9 @@ namespace Pong
 	[CreateAssetMenu(fileName = "PlayerData", menuName = "Pong/Player Data", order = 0)]
 	public class PlayerData : ScriptableObject
 	{
+		//static events
+		public static Action AnyPlayerScoreChange;
+
 		//Events
 		public Action<int> OnScoreChange;
 		public Action<Powerup> OnGainedPowerup;
@@ -50,33 +53,16 @@ namespace Pong
 		{
 			_score = newScore;
 			OnScoreChange?.Invoke(_score);
+			AnyPlayerScoreChange?.Invoke();
 		}
 
 		public void ResetPlayerData()
 		{
 			SetScore(0);
 		}
-
-		public void SetInputActive(bool active)
-		{
-			if (active)
-			{
-				_paddle.PaddleMovement.ActivateInput();
-			}
-			else
-			{
-				_paddle.PaddleMovement.DeactivateInput();
-			}
-		}
-
 		public void RegisterPaddle(Paddle paddle)
 		{
 			_paddle = paddle;
-		}
-
-		public void ResetPosition()
-		{
-			_paddle.ResetPosition();
 		}
 
 		public void GetPowerup(Powerup powerup)
