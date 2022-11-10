@@ -28,7 +28,30 @@ namespace Pong
             _box = GetComponentInChildren<BoxCollider2D>();
             _rigidbody2D = GetComponent<Rigidbody2D>();
         }
-        
+
+        private void OnEnable()
+        {
+            PongGameManager.OnGameStateChange += OnGameStateChange;
+        }
+
+        private void OnDisable()
+        {
+            PongGameManager.OnGameStateChange -= OnGameStateChange;
+
+        }
+
+        private void OnGameStateChange(GameState state)
+        {
+            if (state == GameState.Gameplay)
+            {
+                ActivateInput();
+            }
+            else
+            {
+                DeactivateInput();
+            }
+        }
+
 
         private void Start()
         {

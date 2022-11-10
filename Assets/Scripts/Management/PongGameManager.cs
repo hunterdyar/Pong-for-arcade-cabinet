@@ -4,22 +4,32 @@ using System.Collections.Generic;
 using System.Linq;
 using Pong;
 using Pong.Powerups;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Pong
 {
 	public class PongGameManager : MonoBehaviour
 	{
+		//This static action is the only real "singleton-ey" thing we have going on right now. It would be easy to move this into a scriptable-object-architecture style event system for game state.
+		//I prefer that, but the project just doesn't have the scope to warrant it. keeping it simple until I need to change.
+		public static Action<GameState> OnGameStateChange;
+		public static Action<PlayerData> OnPlayerWon; 
+			
 		[Header("Scene Config")]
 		[SerializeField] private Transform ballSpawnPosition;
 		[SerializeField] private Countdown _countdown;
+		
+		//State machine should always go in order. Setup->countdown->gameplay->game over. It won't loop back to the start... because we will just reload the scene instead!
+		public GameState GameState => _gameState;
+		private GameState _gameState;
 
 		[Header("Game Config")]
 		[SerializeField]
 		private float _delayBeforeBallLaunch;
 		[Min(1)] [SerializeField]
 		private int _startingBallCount;
+
+		[SerializeField] private int scoreToWin;
 		
 		[Header("Data Setup")]
 		[SerializeField] private GameObject ballPrefab;
@@ -28,9 +38,10 @@ namespace Pong
 		private readonly List<Ball> _ballsInPlay = new List<Ball>();
 
 		[SerializeField] private PlayerData[] _players;
-
 		private void Awake()
 		{
+			//Idle state. This will probably not even bother to fire the event: there are no listeners yet. Things can set themselves up on awake/start, we reload scenes to restart.
+			EnterGameState(GameState.Setup);
 			_powerupManager.Init();
 
 			foreach (var player in _players)
@@ -42,50 +53,54 @@ namespace Pong
 		private void OnEnable()
 		{
 			Countdown.OnCountdownGo += OnCountdownGo;
+			PlayerData.AnyPlayerScoreChange += CheckForVictory;
 		}
 
 		private void OnDisable()
 		{
 			Countdown.OnCountdownGo -= OnCountdownGo;
+			PlayerData.AnyPlayerScoreChange -= CheckForVictory;
 		}
 
 		private void Start()
 		{
-			foreach (var player in _players)
-			{
-				player.ResetPlayerData();
-				player.SetInputActive(true);
-			}
-			
 			for (int i = 0; i < _startingBallCount; i++)
 			{
 				CreateNewBall(false);
 			}
 			
-			//initial state
+			//initialize score to 0, etc.
 			foreach (var player in _players)
 			{
-				player.SetInputActive(false);
-				player.ResetPosition();
+				player.ResetPlayerData();
 			}
-
+			
+			EnterGameState(GameState.Countdown);
 			_countdown.StartCountdown();
 			_powerupManager.StartGame();
 		}
 
+		private void EnterGameState(GameState state)
+		{
+			if (_gameState != state)
+			{
+				_gameState = state;
+				OnGameStateChange?.Invoke(_gameState);
+			}
+		}
+
 		void Update()
 		{
-			_powerupManager.Tick();
+			if (_gameState == GameState.Gameplay)
+			{
+				_powerupManager.Tick();
+			}
 		}
 
 		//Todo: Refactor this so a Countdown object handles everything and then calls back to the game manager
 		private void OnCountdownGo()
 		{
-			foreach(var player in _players)
-			{
-				player.SetInputActive(true);
-			}
-
+			EnterGameState(GameState.Gameplay);
 			//todo: who determines ball speed?
 			foreach (var ball in _ballsInPlay)
 			{
@@ -133,8 +148,7 @@ namespace Pong
 				}
 				_ballsInPlay.Clear();
 			}
-			
-			
+
 			var ballObject = GameObject.Instantiate(ballPrefab, GetValidSpawnPosition(), Quaternion.identity);
 			var newBall = ballObject.GetComponent<Ball>();
 			newBall.SetPongGameManager(this);//Dependency injection pattern
@@ -147,11 +161,34 @@ namespace Pong
 		//Some balls may or may not get replaced.
 		public void OnBallRemovedFromPlay(bool replaceBall = true)
 		{
-			//check if the game is over
-			if (replaceBall)
+			//If it ever becomes possible to get points without the ball going into the zone, doign the check there breaks.
+			// Since that's an idea that we had (like coin/score pickups or such), we instead subscribe and do checkForVictory to a playeraction to check as a result of the player score changing. So it will just always work.
+			// CheckForVictory();
+			if (replaceBall && _gameState == GameState.Gameplay)
 			{
 				var newBall = CreateNewBall(false);
 				newBall.FireBall(_delayBeforeBallLaunch);
+			}
+		}
+
+		//This function does not assume we know who called it or why. Most of the time it's a player score change, and we could pass that in instead of looping through all players.
+		//but a) there are only two players, it's whatever and b) rather just have one bit of logic for the code and not deal with edge-cases.
+		private void CheckForVictory()
+		{
+			if (_gameState != GameState.Gameplay)
+			{
+				return;
+			}
+			
+			foreach (var player in _players)
+			{
+				if (player.Score >= scoreToWin)
+				{
+					//Interestingly, we don't keep track of who won or save that anywhere. We shouldn't need to! The next thing that will happen is the game restarts.
+					OnPlayerWon?.Invoke(player);
+					EnterGameState(GameState.PlayerWon);
+					break;
+				}
 			}
 		}
 

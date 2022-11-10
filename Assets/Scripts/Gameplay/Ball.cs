@@ -33,6 +33,29 @@ namespace Pong
             _rigidbody2D.constraints = RigidbodyConstraints2D.FreezeAll;//Let other balls knock off it it in the center, but it shouldn't move.
         }
 
+        private void OnEnable()
+        {
+            PongGameManager.OnGameStateChange += OnGameStateChange;
+        }
+
+        private void OnDisable()
+        {
+            PongGameManager.OnGameStateChange -= OnGameStateChange;
+
+        }
+
+        private void OnGameStateChange(GameState state)
+        {
+            if (state == GameState.PlayerWon)
+            {
+                //this feels like 3 ways to do the same thing. 
+                _rigidbody2D.velocity = Vector2.zero;
+                _rigidbody2D.angularVelocity = 0;
+                _rigidbody2D.constraints = RigidbodyConstraints2D.FreezeAll;
+                _rigidbody2D.isKinematic = true;
+            }
+        }
+
         private void FixedUpdate()
         {
             float velocitySqrMagnitude = _rigidbody2D.velocity.sqrMagnitude;
