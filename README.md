@@ -1,6 +1,8 @@
 # Pong-for-arcade-cabinet
 Pong game (with powerups!) made in Unity, deployed to a coffee table arcade cabinet
 
+![Image of the game running on the machine](Documentation/first-working-test.jpeg)
+
 ## Setup Notes
 - Need TextMeshPro
 - Using new input system. You may need to restart the editor to get bindings to work.
