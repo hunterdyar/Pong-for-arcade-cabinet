@@ -13,10 +13,15 @@ namespace Pong
         private BoxCollider2D _box;
         private PaddleInput _input;
         private Vector2 _desiredVelocity;
+        public Vector2 DesiredVelocity => _desiredVelocity;
         private Bounds _worldBounds;
         private bool _inputActive = true;
         private float _calculatedRealMaxSpeed => CalculateSpeed(); //Speed after various calculations, powerups, etc.
         private float _currentSpeed;
+        
+        [SerializeField] private bool _isConfused;
+        public bool IsConfused { get => _isConfused; set => _isConfused = value; }
+        
         public float CalculateSpeed()
         {
             return baseSpeed; //modifiers!
@@ -27,11 +32,13 @@ namespace Pong
         {
             _box = GetComponentInChildren<BoxCollider2D>();
             _rigidbody2D = GetComponent<Rigidbody2D>();
+            
         }
 
         private void OnEnable()
         {
             PongGameManager.OnGameStateChange += OnGameStateChange;
+            
         }
 
         private void OnDisable()
@@ -63,7 +70,14 @@ namespace Pong
         {
             if (_inputActive)
             {
-                _desiredVelocity = new Vector2(value * _calculatedRealMaxSpeed, 0);
+                if (_isConfused)
+                {
+                    _desiredVelocity = new Vector2(-value * _calculatedRealMaxSpeed, 0);
+                }
+                else
+                {
+                    _desiredVelocity = new Vector2(value * _calculatedRealMaxSpeed, 0);
+                }
             }
         }
 
@@ -90,7 +104,7 @@ namespace Pong
             }
 
             Vector3 testPoint;
-
+            
             //get a point on the right or left edge of the box, depending on what direction we are moving
             if (_desiredVelocity.x > 0)
             {

@@ -34,7 +34,7 @@ namespace Pong
 		[Header("Data Setup")]
 		[SerializeField] private GameObject ballPrefab;
 		[SerializeField] private PowerupManager _powerupManager;
-		
+		public PowerupManager PowerupManager => _powerupManager;
 		private readonly List<Ball> _ballsInPlay = new List<Ball>();
 
 		[SerializeField] private PlayerData[] _players;
@@ -153,6 +153,7 @@ namespace Pong
 			var newBall = ballObject.GetComponent<Ball>();
 			newBall.SetPongGameManager(this);//Dependency injection pattern
 			_ballsInPlay.Add(newBall);
+			newBall.name = $"Ball_{_ballsInPlay.Count}"; //For Designer quality of life
 			return newBall;
 		}
 

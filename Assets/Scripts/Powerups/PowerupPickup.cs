@@ -7,6 +7,7 @@ namespace Pong.Powerups
 	{
 		//Powerups could be scriptableObjects or monobehaviours or just classes, who knows!
 		[SerializeField] private PowerupManager _powerupManager;
+		public PowerupManager PowerupManager => _powerupManager;
 		private Powerup _powerup= Powerup.None;
 
 		private SpriteRenderer _spriteRenderer;
@@ -50,14 +51,12 @@ namespace Pong.Powerups
 			}
 		}
 
-		public virtual void OnPickup(PlayerData player)
+		protected virtual void OnPickup(PlayerData player)
 		{
 			_powerupManager.OnPickup(this);
 			player.GetPowerup(_powerup);
 			//todo: JUICE
-			Destroy(gameObject);
+			Destroy(gameObject); // Dangerous with a public modifier
 		}
-
-		
 	}
 }

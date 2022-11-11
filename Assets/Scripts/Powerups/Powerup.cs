@@ -6,6 +6,7 @@
 		LongPaddle,
 		Cannon,
 		HideOpponent,
-		LaunchBall
+		LaunchBall,
+		Confused
 	}
 }
