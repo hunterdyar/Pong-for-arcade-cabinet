@@ -367,6 +367,7 @@ GameObject:
   m_Component:
   - component: {fileID: 443149862}
   - component: {fileID: 443149863}
+  - component: {fileID: 443149864}
   m_Layer: 0
   m_Name: Pong Manager
   m_TagString: Untagged
@@ -406,12 +407,24 @@ MonoBehaviour:
   _countdown: {fileID: 1216966069}
   _delayBeforeBallLaunch: 0.5
   _startingBallCount: 1
-  scoreToWin: 7
-  ballPrefab: {fileID: 972825881754301509, guid: cb5186b649c84de4994277eb83c98d9c, type: 3}
+  scoreToWin: 10
   _powerupManager: {fileID: 11400000, guid: 9adcbf36c6fb3094aac46a950b09f104, type: 2}
   _players:
   - {fileID: 11400000, guid: 6520a164f596da146a13a5bd9ef93f8a, type: 2}
   - {fileID: 11400000, guid: 65f505716a8e7d34b9d3e173786dd435, type: 2}
+--- !u!114 &443149864
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443149861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24d00460358f491aad8963900c56cded, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _pooledOjectPrefab: {fileID: 972825881754301514, guid: cb5186b649c84de4994277eb83c98d9c, type: 3}
 --- !u!1 &498603886
 GameObject:
   m_ObjectHideFlags: 0

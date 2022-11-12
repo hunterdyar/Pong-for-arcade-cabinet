@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Pong;
+using Pong.Pooling;
 using Pong.Powerups;
 using UnityEngine;
 
 namespace Pong
 {
+	[RequireComponent(typeof(GameObjectPool))]
 	public class PongGameManager : MonoBehaviour
 	{
 		//This static action is the only real "singleton-ey" thing we have going on right now. It would be easy to move this into a scriptable-object-architecture style event system for game state.
@@ -32,18 +32,21 @@ namespace Pong
 		[SerializeField] private int scoreToWin;
 		
 		[Header("Data Setup")]
-		[SerializeField] private GameObject ballPrefab;
+		private GameObjectPool _ballPool;
+		
 		[SerializeField] private PowerupManager _powerupManager;
 		
+		//my gut tells me to use _ballPool.ActiveObjectsInPool instead of keeping my own list. Two issues
+			//1. This is type ball, that's type PooledObject, we'd have to cast.
+			//2. Using this code as reference and the pooler code as reference for students is nicer of the code is more compartmentalized. You could easily remove the pool and this would still work.
 		private readonly List<Ball> _ballsInPlay = new List<Ball>();
-
 		[SerializeField] private PlayerData[] _players;
 		private void Awake()
 		{
 			//Idle state. This will probably not even bother to fire the event: there are no listeners yet. Things can set themselves up on awake/start, we reload scenes to restart.
 			EnterGameState(GameState.Setup);
 			_powerupManager.Init();
-
+			_ballPool = GetComponent<GameObjectPool>();
 			foreach (var player in _players)
 			{
 				player.SetPongGameManager(this);
@@ -149,11 +152,11 @@ namespace Pong
 				_ballsInPlay.Clear();
 			}
 
-			var ballObject = GameObject.Instantiate(ballPrefab, GetValidSpawnPosition(), Quaternion.identity);
+			// var ballObject = GameObject.Instantiate(ballPrefab, GetValidSpawnPosition(), Quaternion.identity);
+			var ballObject = _ballPool.GetObject(GetValidSpawnPosition(), Quaternion.identity, null);
 			var newBall = ballObject.GetComponent<Ball>();
 			newBall.SetPongGameManager(this);//Dependency injection pattern
-			_ballsInPlay.Add(newBall);
-			return newBall;
+			_ballsInPlay.Add(newBall);return newBall;
 		}
 
 		//Called by the ball when it gets scored.

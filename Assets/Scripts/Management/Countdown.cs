@@ -11,8 +11,7 @@ namespace Pong
 		public static Action OnCountdownStart;
 		public static Action OnCountdownGo;
 		public static Action OnCountdownOver;
-	
-	
+
 		private Coroutine _countdownRoutine;
 		public void StartCountdown()
 		{
@@ -22,7 +21,6 @@ namespace Pong
 			}
 			_countdownRoutine = StartCoroutine(DoCountdown());
 		}
-
 
 		private IEnumerator DoCountdown()
 		{
