@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -17,21 +18,29 @@ namespace Pong.Powerups
 		[SerializeField] private int _minUncollectedOnScreen;
 		[SerializeField] private Vector2 _minDistanceToEdges;
 		[SerializeField] private GameObject _powerupPickupPrefab;
+
+		[Header("Powerup Config")]
+		[InspectorName("Powerup Data")]
+		[SerializeField] private PowerupDataMapping[] _dataMappings;
+		private Dictionary<Powerup, PowerupDataMapping> _dataMap;
+		private float _randomWeightTotal;
+		
 		private float _timeSinceLastPowerupSpawn;
 		private float _spawnNextPickupTime;
 		private List<PowerupPickup> _activePowerupCollectibles;
-		
-		[Header("Powerip Config")]
-		[SerializeField] private PowerupDataMapping[] _dataMappings;
-		private Dictionary<Powerup, PowerupDataMapping> _dataMap;
-		
 		public void Init()
 		{
 			_activePowerupCollectibles = new List<PowerupPickup>();
 			_dataMap = new Dictionary<Powerup, PowerupDataMapping>();
+			_randomWeightTotal = 0;
 			foreach (var pim in _dataMappings)
 			{
 				_dataMap.Add(pim.Powerup,pim);
+				_randomWeightTotal = _randomWeightTotal + pim.Weight;
+				if (pim.Weight <= Mathf.Epsilon)
+				{
+					Debug.LogWarning($"{pim.Powerup} has a weight of 0 or negative. Will not be chosen or will break things, respectively.");
+				}
 			}
 		}
 
@@ -72,15 +81,22 @@ namespace Pong.Powerups
 			var powerupPickup = Instantiate(_powerupPickupPrefab, pos, Quaternion.Euler(0, 0, Random.Range(0f, 360f))).GetComponent<PowerupPickup>();
 			if (powerupPickup != null)
 			{
-				powerupPickup.SetPickup(GetRandomPowerup());
-				_activePowerupCollectibles.Add(powerupPickup);
+				var randomPowerup = GetRandomPowerup();
+				if (randomPowerup != Powerup.None)
+				{
+					powerupPickup.SetPickup(randomPowerup);
+					_activePowerupCollectibles.Add(powerupPickup);
+				}
+				else
+				{
+					Debug.Log("Trying to spawn a powerup when we can't. Turn off powerup spawning, add powerups to the manager, or make weights non-zero.");
+				}
 			}
 			else
 			{
 				Debug.LogWarning("no powerupPickup component on collectible prefab?", _powerupPickupPrefab);
 			}
 			ResetPickupSpawnTimer();
-			
 		}
 
 		private void ResetPickupSpawnTimer()
@@ -91,15 +107,33 @@ namespace Pong.Powerups
 			_spawnNextPickupTime = _averageDelayBetweenSpawns + Random.Range(-randomHalfOffset, randomHalfOffset);
 		}
 
+		[ContextMenu("Get Random Powerup")]
 		public Powerup GetRandomPowerup()
 		{
-			//todo: if we want some powerups to appear more often than others, this would be the place for that.
-			//We would do that with some weighting and use the sprite mppings to make an array with each item in the array x times, pluck a random one
+			//this doesnt work of the weights change during runtime. I have a feeling that having weights change would be nice, as we go from early to late-game.
+			//if so, we have to recalculate the total here:
+			// _randomWeightTotal = _dataMappings.Sum(x => x.Weight);
 			
-			var asArray = Enum.GetValues(typeof(Powerup));
-			int max = asArray.Length;
-			//The first element of this array is "none", so we skip it. Range starts at 1 not 0.
-			return (Powerup)asArray.GetValue(Random.Range(1, max));
+			//Escape if we tried to turn of powerups without actually turning off powerups.
+			if (_dataMappings.Length == 0 || _randomWeightTotal == 0)
+			{
+				return Powerup.None;
+			}
+			
+			//get a random item
+			var choice = Random.Range(0f,_randomWeightTotal);
+			foreach (var p in _dataMappings)
+			{
+				choice = choice - p.Weight;
+				if (choice <= 0)
+				{
+					return p.Powerup;
+				}
+			}
+
+			// Guessing Fence post problem?? 0 powerups in the list?
+			Debug.LogError("Random powerup selection failed? Are weights negative? Did things change during runtime?");
+			return _dataMappings[^1].Powerup;//eh just give us the last one so we don't crash. 
 		}
 
 		public Sprite GetSprite(Powerup powerup)
