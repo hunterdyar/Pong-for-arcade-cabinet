@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -21,17 +22,24 @@ namespace Pong.Powerups
 		private float _spawnNextPickupTime;
 		private List<PowerupPickup> _activePowerupCollectibles;
 		
-		[Header("Powerip Config")]
+		[Header("Powerup Config")]
+		[InspectorName("Powerup Data")]
 		[SerializeField] private PowerupDataMapping[] _dataMappings;
 		private Dictionary<Powerup, PowerupDataMapping> _dataMap;
-		
+		private float _randomWeightTotal;
 		public void Init()
 		{
 			_activePowerupCollectibles = new List<PowerupPickup>();
 			_dataMap = new Dictionary<Powerup, PowerupDataMapping>();
+			_randomWeightTotal = 0;
 			foreach (var pim in _dataMappings)
 			{
 				_dataMap.Add(pim.Powerup,pim);
+				_randomWeightTotal = _randomWeightTotal + pim.Weight;
+				if (pim.Weight == 0)
+				{
+					Debug.LogWarning($"{pim.Powerup} has a weight of 0. Will not be chosen.");
+				}
 			}
 		}
 
@@ -91,15 +99,27 @@ namespace Pong.Powerups
 			_spawnNextPickupTime = _averageDelayBetweenSpawns + Random.Range(-randomHalfOffset, randomHalfOffset);
 		}
 
+		[ContextMenu("Get Random Powerup")]
 		public Powerup GetRandomPowerup()
 		{
-			//todo: if we want some powerups to appear more often than others, this would be the place for that.
-			//We would do that with some weighting and use the sprite mppings to make an array with each item in the array x times, pluck a random one
+			//this doesnt work of the weights change during runtime. I have a feeling that having weights change would be nice, as we go from early to late-game.
+			//if so, we have to recalculate the total here:
+			// _randomWeightTotal = _dataMappings.Sum(x => x.Weight);
 			
-			var asArray = Enum.GetValues(typeof(Powerup));
-			int max = asArray.Length;
-			//The first element of this array is "none", so we skip it. Range starts at 1 not 0.
-			return (Powerup)asArray.GetValue(Random.Range(1, max));
+			var choice = Random.Range(0f,_randomWeightTotal);
+			
+			foreach (var p in _dataMappings)
+			{
+				choice = choice - p.Weight;
+				if (choice <= 0)
+				{
+					return p.Powerup;
+				}
+			}
+
+			// Guessing Fence post problem??
+			Debug.LogError("Random powerup selection failed? Are weights negative? Did things change during runtime?");
+			return _dataMappings[_dataMappings.Length-1].Powerup;//eh just give us the last one. 
 		}
 
 		public Sprite GetSprite(Powerup powerup)

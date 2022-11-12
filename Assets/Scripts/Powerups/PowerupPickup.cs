@@ -19,6 +19,8 @@ namespace Pong.Powerups
 		public void SetPickup(Powerup powerup)
 		{
 			this._powerup = powerup;
+			gameObject.name = $"{powerup} pickup";
+			//todo: configure collider shape.
 		}
 
 		private void Start()
@@ -57,7 +59,5 @@ namespace Pong.Powerups
 			//todo: JUICE
 			Destroy(gameObject);
 		}
-
-		
 	}
 }

@@ -13,19 +13,23 @@ MonoBehaviour:
   m_Name: PowerupManager
   m_EditorClassIdentifier: 
   _spawningEnabled: 1
-  _spawnCountAtStartRound: 0
+  _spawnCountAtStartRound: 1
   _averageDelayBetweenSpawns: 5
   _randomDelayRange: 0.68
-  _maxUncollectedOnScreen: 4
+  _maxUncollectedOnScreen: 5
   _minUncollectedOnScreen: 0
   _minDistanceToEdges: {x: 1, y: 3}
   _powerupPickupPrefab: {fileID: 7385997637886412820, guid: a6a2171799197f344960919c1c410325, type: 3}
   _dataMappings:
   - Powerup: 1
     Sprite: {fileID: 7482667652216324306, guid: 34cb42b35e6026c47b0cf222033c8342, type: 3}
+    Weight: 1
   - Powerup: 2
     Sprite: {fileID: 7482667652216324306, guid: 422a133912a5e364b8580519ef972bab, type: 3}
+    Weight: 1
   - Powerup: 3
     Sprite: {fileID: -2413806693520163455, guid: 01b0e8dd0b7ff2d46a5faeb3dddb119c, type: 3}
+    Weight: 1
   - Powerup: 4
     Sprite: {fileID: 3625043607559282579, guid: ce7f60de832535f47bfb96b053e8d1a2, type: 3}
+    Weight: 1
