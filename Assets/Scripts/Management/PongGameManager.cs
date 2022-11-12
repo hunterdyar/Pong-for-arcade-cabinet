@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Pong;
+using Pong.Pooling;
 using Pong.Powerups;
 using UnityEngine;
 
 namespace Pong
 {
+	[RequireComponent(typeof(GameObjectPool))]
 	public class PongGameManager : MonoBehaviour
 	{
 		//This static action is the only real "singleton-ey" thing we have going on right now. It would be easy to move this into a scriptable-object-architecture style event system for game state.
@@ -32,7 +32,8 @@ namespace Pong
 		[SerializeField] private int scoreToWin;
 		
 		[Header("Data Setup")]
-		[SerializeField] private GameObject ballPrefab;
+		private GameObjectPool _ballPool;
+		
 		[SerializeField] private PowerupManager _powerupManager;
 		
 		private readonly List<Ball> _ballsInPlay = new List<Ball>();
@@ -43,7 +44,7 @@ namespace Pong
 			//Idle state. This will probably not even bother to fire the event: there are no listeners yet. Things can set themselves up on awake/start, we reload scenes to restart.
 			EnterGameState(GameState.Setup);
 			_powerupManager.Init();
-
+			_ballPool = GetComponent<GameObjectPool>();
 			foreach (var player in _players)
 			{
 				player.SetPongGameManager(this);
@@ -149,10 +150,11 @@ namespace Pong
 				_ballsInPlay.Clear();
 			}
 
-			var ballObject = GameObject.Instantiate(ballPrefab, GetValidSpawnPosition(), Quaternion.identity);
+			// var ballObject = GameObject.Instantiate(ballPrefab, GetValidSpawnPosition(), Quaternion.identity);
+			var ballObject = _ballPool.GetObject(GetValidSpawnPosition(), Quaternion.identity, null);
 			var newBall = ballObject.GetComponent<Ball>();
 			newBall.SetPongGameManager(this);//Dependency injection pattern
-			_ballsInPlay.Add(newBall);
+			_ballsInPlay.Add(newBall);//we could sneak a look at the pool instead of duplicating our efforts. But since I think students will copy the pool scripts elsewhere, we will leave as-is.
 			return newBall;
 		}
 

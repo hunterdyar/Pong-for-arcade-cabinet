@@ -1,12 +1,12 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
+using Pong.Pooling;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace Pong
 {
-    public class Ball : MonoBehaviour
+    public class Ball : PooledObject
     {
         public Action<PlayerData> OnLastPaddleTouchedChanged;
         
@@ -15,7 +15,7 @@ namespace Pong
         [SerializeField] private float _destroyIfNotMovingTime;
         private const float NotMovingVelocityThreshold = 0.01f;
         
-        private float _sqrMaxSpeed => _maxSpeed * _maxSpeed;
+        private float SqrMaxSpeed => _maxSpeed * _maxSpeed;
         private Rigidbody2D _rigidbody2D;
         private SpriteRenderer _spriteRenderer;
         private bool _replaceWhenDestroyed = true;
@@ -23,14 +23,22 @@ namespace Pong
         private float _timeSpentNotMoving = 0;
         private bool _hasBeenLaunched;
         private PlayerData _lastPaddleTouched;
+
+        private Color _defaultColor;
         // Start is called before the first frame update
         private void Awake()
         {
-            _timeSpentNotMoving = 0;
-            _hasBeenLaunched = false;
             _rigidbody2D = GetComponent<Rigidbody2D>();
             _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-            _rigidbody2D.constraints = RigidbodyConstraints2D.FreezeAll;//Let other balls knock off it it in the center, but it shouldn't move.
+            Init();
+        }
+
+        private void Init()
+        {
+            _timeSpentNotMoving = 0;
+            _hasBeenLaunched = false;
+            _defaultColor = _spriteRenderer.color;
+            _rigidbody2D.constraints = RigidbodyConstraints2D.FreezeAll; //Let other balls knock off it it in the center, but it shouldn't move.
         }
 
         private void OnEnable()
@@ -41,7 +49,15 @@ namespace Pong
         private void OnDisable()
         {
             PongGameManager.OnGameStateChange -= OnGameStateChange;
+        }
 
+        
+        public override void ResetAsNew(Vector3 position, Quaternion rotation, Transform parent)
+        {
+            base.ResetAsNew(position, rotation, parent);
+            _rigidbody2D.velocity = Vector2.zero;
+            _rigidbody2D.angularVelocity = 0;
+            Init();
         }
 
         private void OnGameStateChange(GameState state)
@@ -60,7 +76,7 @@ namespace Pong
         {
             float velocitySqrMagnitude = _rigidbody2D.velocity.sqrMagnitude;
             //set max speed
-            if (velocitySqrMagnitude > _sqrMaxSpeed)
+            if (velocitySqrMagnitude > SqrMaxSpeed)
             {
                 _rigidbody2D.velocity = _rigidbody2D.velocity.normalized * _maxSpeed;
                 _timeSpentNotMoving = 0;
@@ -173,7 +189,7 @@ namespace Pong
 
         public void RemoveBall()
         {
-            Destroy(gameObject);
+            ReturnToPool(this);
         }
 
 
