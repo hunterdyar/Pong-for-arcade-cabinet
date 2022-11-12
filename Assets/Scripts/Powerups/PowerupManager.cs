@@ -18,15 +18,16 @@ namespace Pong.Powerups
 		[SerializeField] private int _minUncollectedOnScreen;
 		[SerializeField] private Vector2 _minDistanceToEdges;
 		[SerializeField] private GameObject _powerupPickupPrefab;
-		private float _timeSinceLastPowerupSpawn;
-		private float _spawnNextPickupTime;
-		private List<PowerupPickup> _activePowerupCollectibles;
-		
+
 		[Header("Powerup Config")]
 		[InspectorName("Powerup Data")]
 		[SerializeField] private PowerupDataMapping[] _dataMappings;
 		private Dictionary<Powerup, PowerupDataMapping> _dataMap;
 		private float _randomWeightTotal;
+		
+		private float _timeSinceLastPowerupSpawn;
+		private float _spawnNextPickupTime;
+		private List<PowerupPickup> _activePowerupCollectibles;
 		public void Init()
 		{
 			_activePowerupCollectibles = new List<PowerupPickup>();
@@ -36,9 +37,9 @@ namespace Pong.Powerups
 			{
 				_dataMap.Add(pim.Powerup,pim);
 				_randomWeightTotal = _randomWeightTotal + pim.Weight;
-				if (pim.Weight == 0)
+				if (pim.Weight <= Mathf.Epsilon)
 				{
-					Debug.LogWarning($"{pim.Powerup} has a weight of 0. Will not be chosen.");
+					Debug.LogWarning($"{pim.Powerup} has a weight of 0 or negative. Will not be chosen or will break things, respectively.");
 				}
 			}
 		}
@@ -80,15 +81,22 @@ namespace Pong.Powerups
 			var powerupPickup = Instantiate(_powerupPickupPrefab, pos, Quaternion.Euler(0, 0, Random.Range(0f, 360f))).GetComponent<PowerupPickup>();
 			if (powerupPickup != null)
 			{
-				powerupPickup.SetPickup(GetRandomPowerup());
-				_activePowerupCollectibles.Add(powerupPickup);
+				var randomPowerup = GetRandomPowerup();
+				if (randomPowerup != Powerup.None)
+				{
+					powerupPickup.SetPickup(randomPowerup);
+					_activePowerupCollectibles.Add(powerupPickup);
+				}
+				else
+				{
+					Debug.Log("Trying to spawn a powerup when we can't. Turn off powerup spawning, add powerups to the manager, or make weights non-zero.");
+				}
 			}
 			else
 			{
 				Debug.LogWarning("no powerupPickup component on collectible prefab?", _powerupPickupPrefab);
 			}
 			ResetPickupSpawnTimer();
-			
 		}
 
 		private void ResetPickupSpawnTimer()
@@ -106,8 +114,14 @@ namespace Pong.Powerups
 			//if so, we have to recalculate the total here:
 			// _randomWeightTotal = _dataMappings.Sum(x => x.Weight);
 			
-			var choice = Random.Range(0f,_randomWeightTotal);
+			//Escape if we tried to turn of powerups without actually turning off powerups.
+			if (_dataMappings.Length == 0 || _randomWeightTotal == 0)
+			{
+				return Powerup.None;
+			}
 			
+			//get a random item
+			var choice = Random.Range(0f,_randomWeightTotal);
 			foreach (var p in _dataMappings)
 			{
 				choice = choice - p.Weight;
@@ -117,9 +131,9 @@ namespace Pong.Powerups
 				}
 			}
 
-			// Guessing Fence post problem??
+			// Guessing Fence post problem?? 0 powerups in the list?
 			Debug.LogError("Random powerup selection failed? Are weights negative? Did things change during runtime?");
-			return _dataMappings[_dataMappings.Length-1].Powerup;//eh just give us the last one. 
+			return _dataMappings[^1].Powerup;//eh just give us the last one so we don't crash. 
 		}
 
 		public Sprite GetSprite(Powerup powerup)
