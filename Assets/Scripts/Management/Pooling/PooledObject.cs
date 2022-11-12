@@ -2,7 +2,7 @@
 
 namespace Pong.Pooling
 {
-	public abstract class PooledObject : MonoBehaviour
+	public class PooledObject : MonoBehaviour
 	{
 		public GameObjectPool.PoolEvent ReturnToPool;
 

@@ -36,8 +36,10 @@ namespace Pong
 		
 		[SerializeField] private PowerupManager _powerupManager;
 		
+		//my gut tells me to use _ballPool.ActiveObjectsInPool instead of keeping my own list. Two issues
+			//1. This is type ball, that's type PooledObject, we'd have to cast.
+			//2. Using this code as reference and the pooler code as reference for students is nicer of the code is more compartmentalized. You could easily remove the pool and this would still work.
 		private readonly List<Ball> _ballsInPlay = new List<Ball>();
-
 		[SerializeField] private PlayerData[] _players;
 		private void Awake()
 		{
@@ -154,8 +156,7 @@ namespace Pong
 			var ballObject = _ballPool.GetObject(GetValidSpawnPosition(), Quaternion.identity, null);
 			var newBall = ballObject.GetComponent<Ball>();
 			newBall.SetPongGameManager(this);//Dependency injection pattern
-			_ballsInPlay.Add(newBall);//we could sneak a look at the pool instead of duplicating our efforts. But since I think students will copy the pool scripts elsewhere, we will leave as-is.
-			return newBall;
+			_ballsInPlay.Add(newBall);return newBall;
 		}
 
 		//Called by the ball when it gets scored.

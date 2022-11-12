@@ -3,7 +3,11 @@ using UnityEngine;
 
 namespace Pong.Pooling
 {
-	//Manages a pool of objects, assuming they are can be instantiated from a prefab.
+	//
+	/// <summary>
+	/// Manages a pool of objects, assuming they are can be instantiated from a prefab.
+	/// _pooledObjectPrefab needs to be set to a Prefab that has a component of type PooledObject, which is an abstract class.
+	/// </summary>
 	public class GameObjectPool : MonoBehaviour
 	{
 		//Creating a delegate is like creating a type which can save functions.
@@ -16,6 +20,7 @@ namespace Pong.Pooling
 		//todo: convert to stacks? RemoveAt vs. Pop performance?
 		
 		private readonly List<PooledObject> _pool = new List<PooledObject>();
+		public List<PooledObject> GetActiveObjectsInPool => _active;
 		private readonly List<PooledObject> _active = new List<PooledObject>();
 		
 		public GameObject GetObject(Vector3 position,Quaternion rotation, Transform parent)

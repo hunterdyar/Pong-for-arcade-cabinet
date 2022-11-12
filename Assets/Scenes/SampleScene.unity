@@ -407,7 +407,7 @@ MonoBehaviour:
   _countdown: {fileID: 1216966069}
   _delayBeforeBallLaunch: 0.5
   _startingBallCount: 1
-  scoreToWin: 7
+  scoreToWin: 10
   _powerupManager: {fileID: 11400000, guid: 9adcbf36c6fb3094aac46a950b09f104, type: 2}
   _players:
   - {fileID: 11400000, guid: 6520a164f596da146a13a5bd9ef93f8a, type: 2}
